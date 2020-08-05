@@ -35,6 +35,8 @@ import com.example.filter_app.R;
 
 import java.io.File;
 import java.io.IOException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 import ja.burhanrashid52.photoeditor.OnPhotoEditorListener;
 import ja.burhanrashid52.photoeditor.PhotoEditor;
@@ -48,7 +50,7 @@ public class Edit_Test_Activity extends Basic_Activity implements OnPhotoEditorL
         View.OnClickListener,
         Property_BS_fragment.Properties,
         Emoji_BS_Fragment.EmojiListener,
-        Sticker_BS_Fragment.StickerListener, EditingToolsAdapter.OnItemSelected, Filter.FilterListener {
+        Sticker_BS_Fragment.StickerListener, EditingToolsAdapter.OnItemSelected, Filter.FilterListener, FilterListener {
 
     private static final String TAG = Edit_Test_Activity.class.getSimpleName();
     public static final String FILE_PROVIDER_AUTHORITY = "Test";
@@ -216,7 +218,11 @@ public class Edit_Test_Activity extends Basic_Activity implements OnPhotoEditorL
                 break;
 
             case R.id.imgSave:
-                saveImage();
+                try {
+                    saveImage();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
                 break;
 
             case R.id.imgClose:
@@ -259,12 +265,19 @@ public class Edit_Test_Activity extends Basic_Activity implements OnPhotoEditorL
     }
 
     @SuppressLint("MissingPermission")
-    private void saveImage() {
+    private void saveImage() throws IOException {
         if (requestPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE)) {
             showLoading("Saving...");
-            File file = new File(Environment.getExternalStorageDirectory()
-                    + File.separator + ""
-                    + System.currentTimeMillis() + ".png");
+            String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
+            String imageFileName = "JPEG_" + timeStamp + "_";
+            File storageDir = getExternalFilesDir(Environment.DIRECTORY_PICTURES);
+            File f = File.createTempFile(
+                    imageFileName,  /* prefix */
+                    ".jpg",         /* suffix */
+                    storageDir      /* directory */
+            );
+            String currentPhotoPath = f.getAbsolutePath();
+            File file = new File(currentPhotoPath);
             try {
                 file.createNewFile();
 
@@ -353,7 +366,11 @@ public class Edit_Test_Activity extends Basic_Activity implements OnPhotoEditorL
     @Override
     public void isPermissionGranted(boolean isGranted, String permission) {
         if (isGranted) {
-            saveImage();
+            try {
+                saveImage();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
     }
 
@@ -363,7 +380,11 @@ public class Edit_Test_Activity extends Basic_Activity implements OnPhotoEditorL
         builder.setPositiveButton("Save", new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
-                saveImage();
+                try {
+                    saveImage();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
             }
         });
         builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
@@ -465,6 +486,16 @@ public class Edit_Test_Activity extends Basic_Activity implements OnPhotoEditorL
 
     @Override
     public void onFilterComplete(int count) {
+
+    }
+
+    /**
+     * Called when pointer capture is enabled or disabled for the current window.
+     *
+     * @param hasCapture True if the window has pointer capture.
+     */
+    @Override
+    public void onPointerCaptureChanged(boolean hasCapture) {
 
     }
 }
